@@ -9,7 +9,7 @@
 #include "types.h"
 
 
-#define MAX_ENTITIES 50000
+#define MAX_ENTITIES 55000
 
 
 typedef enum component
@@ -218,6 +218,7 @@ uint8_t color_float_to_uint(float color)
 }
 
 int new_entities = 0;
+int rectangle_sidelength = 1;
 
 
 
@@ -229,8 +230,100 @@ typedef struct player {
 
 player_t player;
 
+///////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////ECS////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct vector
+{
+    u32 count;
+    u32 elem_size;
+    u32 capacity;
+    void* data;
+} vector_t;
+
+void vector_init(vector_t* vec, u32 elem_size)
+{
+    vec->count = 0;
+    vec->elem_size = elem_size;
+    vec->capacity = 5;
+    void* data = malloc(vec->elem_size * vec->capacity);
+}
 
 
+
+void _vector_resize(vector_t* vec)
+{
+    float const RESIZE_FACTOR = 1.5f;
+    u32 new_size = RESIZE_FACTOR * vec->count;
+
+    void* ptr = realloc(vec->data, new_size);
+    assert(ptr);
+
+    vec->data = ptr;
+}
+
+ 
+// Returns address to insert new elem into
+void* vector_add(vector_t* vec)
+{
+    if(vec->count == vec->capacity)
+    {
+        _vector_resize(vec);
+    }
+
+    return (vec->data + (vec->elem_size * vec->count));
+}
+
+void vector_remove(vector_t* vec, u32 pos)
+{
+    assert(pos < vec->count);
+
+    void* dst = vec->data + vec->elem_size * pos;
+    void* src = dst + vec->elem_size;
+    u32 size = vec->count - pos - 1;
+
+    vec->count--;
+    memmove(dst, src, size);
+}
+
+void* vector_get(vector_t* vec, u32 pos)
+{
+    assert(pos < vec->count);
+    return vec->data + vec->elem_size * pos;
+}
+
+
+
+
+
+typedef struct component_array
+{
+    u32 count;
+    u32 element_size;
+    u32* entity_to_index;
+    u32* index_to_entity;
+    void* components;
+} component_array_t; 
+
+void component_array_init(component_array_t* ca, u32 element_size)
+{
+    ca->count = 0;
+    ca->element_size = element_size;
+
+    void* ptr = calloc(MAX_ENTITIES, sizeof(u32));
+    assert(ptr);
+    ca->entity_to_index = (u32*) ptr;
+
+    ptr = calloc(MAX_ENTITIES, sizeof(u32));
+    assert(ptr);
+    ca->index_to_entity = (u32*) ptr;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
 
 #undef main
 int main()
@@ -345,6 +438,7 @@ int main()
                 create_sprite_entities(&my_ecs);
             }
         }
+        ImGui::SliderInt("rectangle size", &rectangle_sidelength, 1, 15);
         ImGui::End();
 
         const Uint8* keystates = SDL_GetKeyboardState(NULL);
@@ -386,8 +480,8 @@ int main()
             SDL_Rect rectangle = {
                 .x = entity_position_data->posX,
                 .y = entity_position_data->posY,
-                .w = 2,
-                .h = 2
+                .w = rectangle_sidelength,
+                .h = rectangle_sidelength
 
             };
 
