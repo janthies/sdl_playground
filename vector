@@ -5,11 +5,8 @@
 # 1 "<command line>" 1
 # 1 "<built-in>" 2
 # 1 "src/vector.cpp" 2
-# 1 "src/types.h" 1
-
-
-# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdint.h" 1 3
-# 106 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdint.h" 3
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdio.h" 1 3
+# 101 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdio.h" 3
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/__config" 1 3
 # 13 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/__config" 3
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/__config_site" 1 3
@@ -25,15 +22,22 @@
 #pragma clang diagnostic pop
 # 14 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/__config" 2 3
 # 17 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/__config" 3
-# 107 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdint.h" 2 3
-# 110 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdint.h" 3
-# 124 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdint.h" 3
-# 1 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stdint.h" 1 3
-# 52 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stdint.h" 3
-# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/stdint.h" 1 3
-# 28 "C:/Users/tja7d/.utils/llvm-mingw/include/stdint.h" 3
-# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/crtdefs.h" 1 3
-# 10 "C:/Users/tja7d/.utils/llvm-mingw/include/crtdefs.h" 3
+# 102 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdio.h" 2 3
+# 105 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdio.h" 3
+
+
+
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/stdio.h" 1 3
+
+
+
+
+
+
+
+
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/corecrt_stdio_config.h" 1 3
+# 10 "C:/Users/tja7d/.utils/llvm-mingw/include/corecrt_stdio_config.h" 3
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/corecrt.h" 1 3
 # 10 "C:/Users/tja7d/.utils/llvm-mingw/include/corecrt.h" 3
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/_mingw.h" 1 3
@@ -204,90 +208,7 @@ typedef struct threadlocaleinfostruct {
 } threadlocinfo;
 # 501 "C:/Users/tja7d/.utils/llvm-mingw/include/corecrt.h" 3
 #pragma pack(pop)
-# 11 "C:/Users/tja7d/.utils/llvm-mingw/include/crtdefs.h" 2 3
-# 29 "C:/Users/tja7d/.utils/llvm-mingw/include/stdint.h" 2 3
-
-
-
-# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stddef.h" 1 3
-# 15 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stddef.h" 3
-
-
-# 1 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stddef.h" 1 3
-# 87 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stddef.h" 3
-# 1 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/__stddef_wchar_t.h" 1 3
-# 88 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stddef.h" 2 3
-# 119 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stddef.h" 3
-# 1 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/__stddef_wint_t.h" 1 3
-# 120 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stddef.h" 2 3
-# 18 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stddef.h" 2 3
-# 33 "C:/Users/tja7d/.utils/llvm-mingw/include/stdint.h" 2 3
-
-
-typedef signed char int8_t;
-typedef unsigned char uint8_t;
-typedef short int16_t;
-typedef unsigned short uint16_t;
-typedef int int32_t;
-typedef unsigned uint32_t;
-__extension__ typedef long long int64_t;
-__extension__ typedef unsigned long long uint64_t;
-
-
-typedef signed char int_least8_t;
-typedef unsigned char uint_least8_t;
-typedef short int_least16_t;
-typedef unsigned short uint_least16_t;
-typedef int int_least32_t;
-typedef unsigned uint_least32_t;
-__extension__ typedef long long int_least64_t;
-__extension__ typedef unsigned long long uint_least64_t;
-
-
-
-
-
-typedef signed char int_fast8_t;
-typedef unsigned char uint_fast8_t;
-typedef short int_fast16_t;
-typedef unsigned short uint_fast16_t;
-typedef int int_fast32_t;
-typedef unsigned int uint_fast32_t;
-__extension__ typedef long long int_fast64_t;
-__extension__ typedef unsigned long long uint_fast64_t;
-
-
-__extension__ typedef long long intmax_t;
-__extension__ typedef unsigned long long uintmax_t;
-# 53 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stdint.h" 2 3
-# 125 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdint.h" 2 3
-# 4 "src/types.h" 2
-
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
-# 2 "src/vector.cpp" 2
-# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdio.h" 1 3
-# 105 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdio.h" 3
-
-
-
-# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/stdio.h" 1 3
-
-
-
-
-
-
-
-
-# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/corecrt_stdio_config.h" 1 3
+# 11 "C:/Users/tja7d/.utils/llvm-mingw/include/corecrt_stdio_config.h" 2 3
 # 10 "C:/Users/tja7d/.utils/llvm-mingw/include/stdio.h" 2 3
 
 #pragma pack(push,_CRT_PACKING)
@@ -1766,8 +1687,18 @@ extern "C" {
 }
 # 1650 "C:/Users/tja7d/.utils/llvm-mingw/include/stdio.h" 2 3
 # 109 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdio.h" 2 3
-# 3 "src/vector.cpp" 2
+# 2 "src/vector.cpp" 2
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/memory.h" 1 3
+
+
+
+
+
+
+
+
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/crtdefs.h" 1 3
+# 10 "C:/Users/tja7d/.utils/llvm-mingw/include/memory.h" 2 3
 # 21 "C:/Users/tja7d/.utils/llvm-mingw/include/memory.h" 3
 extern "C" {
 # 32 "C:/Users/tja7d/.utils/llvm-mingw/include/memory.h" 3
@@ -1789,7 +1720,7 @@ extern "C" {
 
 
 }
-# 4 "src/vector.cpp" 2
+# 3 "src/vector.cpp" 2
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/assert.h" 1 3
 # 17 "C:/Users/tja7d/.utils/llvm-mingw/include/assert.h" 3
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdlib.h" 1 3
@@ -2469,7 +2400,7 @@ __attribute__ ((__dllimport__)) void __attribute__((__cdecl__)) __attribute__ ((
 
 
 }
-# 5 "src/vector.cpp" 2
+# 4 "src/vector.cpp" 2
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/string.h" 1 3
 # 58 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/string.h" 3
 
@@ -2748,7 +2679,7 @@ inline __attribute__((__exclude_from_explicit_instantiation__)) __attribute__((_
   return __builtin_strstr(__s1, __s2);
 }
 }
-# 6 "src/vector.cpp" 2
+# 5 "src/vector.cpp" 2
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/unistd.h" 1 3
 # 10 "C:/Users/tja7d/.utils/llvm-mingw/include/unistd.h" 3
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/io.h" 1 3
@@ -3195,32 +3126,125 @@ int truncate64(const char *, off64_t);
 
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/pthread_unistd.h" 1 3
 # 108 "C:/Users/tja7d/.utils/llvm-mingw/include/unistd.h" 2 3
-# 7 "src/vector.cpp" 2
+# 6 "src/vector.cpp" 2
 # 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdlib.h" 1 3
-# 8 "src/vector.cpp" 2
+# 7 "src/vector.cpp" 2
+
+
+# 1 "src/vector.h" 1
+# 1 "src/types.h" 1
+
+
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdint.h" 1 3
+# 110 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdint.h" 3
+# 124 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdint.h" 3
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stdint.h" 1 3
+# 52 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stdint.h" 3
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/stdint.h" 1 3
+# 32 "C:/Users/tja7d/.utils/llvm-mingw/include/stdint.h" 3
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stddef.h" 1 3
+# 15 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stddef.h" 3
+
+
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stddef.h" 1 3
+# 87 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stddef.h" 3
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/__stddef_wchar_t.h" 1 3
+# 88 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stddef.h" 2 3
+# 119 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stddef.h" 3
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/__stddef_wint_t.h" 1 3
+# 120 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stddef.h" 2 3
+# 18 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stddef.h" 2 3
+# 33 "C:/Users/tja7d/.utils/llvm-mingw/include/stdint.h" 2 3
+
+
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
+typedef short int16_t;
+typedef unsigned short uint16_t;
+typedef int int32_t;
+typedef unsigned uint32_t;
+__extension__ typedef long long int64_t;
+__extension__ typedef unsigned long long uint64_t;
+
+
+typedef signed char int_least8_t;
+typedef unsigned char uint_least8_t;
+typedef short int_least16_t;
+typedef unsigned short uint_least16_t;
+typedef int int_least32_t;
+typedef unsigned uint_least32_t;
+__extension__ typedef long long int_least64_t;
+__extension__ typedef unsigned long long uint_least64_t;
 
 
 
+
+
+typedef signed char int_fast8_t;
+typedef unsigned char uint_fast8_t;
+typedef short int_fast16_t;
+typedef unsigned short uint_fast16_t;
+typedef int int_fast32_t;
+typedef unsigned int uint_fast32_t;
+__extension__ typedef long long int_fast64_t;
+__extension__ typedef unsigned long long uint_fast64_t;
+
+
+__extension__ typedef long long intmax_t;
+__extension__ typedef unsigned long long uintmax_t;
+# 53 "C:/Users/tja7d/.utils/llvm-mingw/lib/clang/18/include/stdint.h" 2 3
+# 125 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdint.h" 2 3
+# 4 "src/types.h" 2
+
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+
+typedef int8_t i8;
+typedef int16_t i16;
+typedef int32_t i32;
+typedef int64_t i64;
+# 2 "src/vector.h" 2
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdio.h" 1 3
+# 3 "src/vector.h" 2
+
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/assert.h" 1 3
+# 5 "src/vector.h" 2
+
+
+# 1 "C:/Users/tja7d/.utils/llvm-mingw/include/c++/v1/stdlib.h" 1 3
+# 8 "src/vector.h" 2
 
 typedef struct vector_metadata
 {
     u32 size;
     u32 capacity;
 } vector_metadata_t;
-# 76 "src/vector.cpp"
+# 10 "src/vector.cpp" 2
+
+void mult(u32* val)
+{
+ *val = (*val) * 2;
+}
+
+void func(u32* val)
+{
+ printf("%u, ", *val);
+}
+
 int main()
 {
  printf("Hallo Welt\n");
     u32* myvec = 0LL;
- do { if(!myvec) { do { size_t const size = (5) * sizeof(*(myvec)) + sizeof(vector_metadata_t); void** vec_addr = (void**)&(myvec); if(*(vec_addr)) { void* base = (&(((vector_metadata_t*)(*(vec_addr)))[-1])); void* ptr = realloc(base, size); (void) ((!!(ptr)) || (_assert("ptr","src/vector.cpp",80),0)); *(vec_addr) = ((void*)&(((vector_metadata_t*)(ptr))[1])); } else { void* ptr = malloc(size); (void) ((!!(ptr)) || (_assert("ptr","src/vector.cpp",80),0)); *(vec_addr) = ((void*)&(((vector_metadata_t*)(ptr))[1])); (&(((vector_metadata_t*)(*(vec_addr)))[-1]))->size = 0; } (&(((vector_metadata_t*)(*(vec_addr)))[-1]))->capacity = 5; } while (0); } u32 const size = (&(((vector_metadata_t*)(myvec))[-1]))->size; u32 const capa = (&(((vector_metadata_t*)(myvec))[-1]))->capacity; if( size >= capa ) { do { size_t const size = ((1.5f * (capa))) * sizeof(*(myvec)) + sizeof(vector_metadata_t); void** vec_addr = (void**)&(myvec); if(*(vec_addr)) { void* base = (&(((vector_metadata_t*)(*(vec_addr)))[-1])); void* ptr = realloc(base, size); (void) ((!!(ptr)) || (_assert("ptr","src/vector.cpp",80),0)); *(vec_addr) = ((void*)&(((vector_metadata_t*)(ptr))[1])); } else { void* ptr = malloc(size); (void) ((!!(ptr)) || (_assert("ptr","src/vector.cpp",80),0)); *(vec_addr) = ((void*)&(((vector_metadata_t*)(ptr))[1])); (&(((vector_metadata_t*)(*(vec_addr)))[-1]))->size = 0; } (&(((vector_metadata_t*)(*(vec_addr)))[-1]))->capacity = (1.5f * (capa)); } while (0); printf("growing\n"); } (myvec)[size] = 3; (&(((vector_metadata_t*)(myvec))[-1]))->size = size + 1; } while (0);
 
+ for(int i = 0; i < 100; i++)
+ {
+  do { if(!myvec) { do { size_t const size = (5) * sizeof(*(myvec)) + sizeof(vector_metadata_t); void** vec_addr = (void**)&(myvec); if(*(vec_addr)) { void* base = (&(((vector_metadata_t*)(*(vec_addr)))[-1])); void* ptr = realloc(base, size); (void) ((!!(ptr)) || (_assert("ptr","src/vector.cpp",28),0)); *(vec_addr) = ((void*)&(((vector_metadata_t*)(ptr))[1])); } else { void* ptr = malloc(size); (void) ((!!(ptr)) || (_assert("ptr","src/vector.cpp",28),0)); *(vec_addr) = ((void*)&(((vector_metadata_t*)(ptr))[1])); (&(((vector_metadata_t*)(*(vec_addr)))[-1]))->size = 0; } printf("setting capacity to %u\n", (5)); (&(((vector_metadata_t*)(*(vec_addr)))[-1]))->capacity = (5); } while (0); } u32 const size = (&(((vector_metadata_t*)(myvec))[-1]))->size; u32 const capa = (&(((vector_metadata_t*)(myvec))[-1]))->capacity; if( size >= capa ) { printf("growing to %u\n", (2 * (capa))); do { size_t const size = ((2 * (capa))) * sizeof(*(myvec)) + sizeof(vector_metadata_t); void** vec_addr = (void**)&(myvec); if(*(vec_addr)) { void* base = (&(((vector_metadata_t*)(*(vec_addr)))[-1])); void* ptr = realloc(base, size); (void) ((!!(ptr)) || (_assert("ptr","src/vector.cpp",28),0)); *(vec_addr) = ((void*)&(((vector_metadata_t*)(ptr))[1])); } else { void* ptr = malloc(size); (void) ((!!(ptr)) || (_assert("ptr","src/vector.cpp",28),0)); *(vec_addr) = ((void*)&(((vector_metadata_t*)(ptr))[1])); (&(((vector_metadata_t*)(*(vec_addr)))[-1]))->size = 0; } printf("setting capacity to %u\n", ((2 * (capa)))); (&(((vector_metadata_t*)(*(vec_addr)))[-1]))->capacity = ((2 * (capa))); } while (0); } (myvec)[size] = i; (&(((vector_metadata_t*)(myvec))[-1]))->size = size + 1; } while (0);
+ }
 
- u32 size = (&(((vector_metadata_t*)(myvec))[-1]))->size;
- u32 capa = (&(((vector_metadata_t*)(myvec))[-1]))->capacity;
- printf("Values: %u, %u", size, capa);
-
-
+ do { u32 const size = (&(((vector_metadata_t*)(myvec))[-1]))->size; for(int i = 0; i < size; i++) { mult(&(myvec)[i]); } } while (0);
+ do { u32 const size = (&(((vector_metadata_t*)(myvec))[-1]))->size; for(int i = 0; i < size; i++) { func(&(myvec)[i]); } } while (0);
 
  printf("Tschuess\n");
-
 }

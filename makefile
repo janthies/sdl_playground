@@ -1,7 +1,7 @@
 PROJECTNAME = project
 OUTPUT_DIR = build
 
-CFLAGS= -Wno-narrowing -fpermissive -g
+CFLAGS= -Wno-narrowing -fpermissive -g -fsanitize=address
 
 INCLUDE_DIRS = -Iinclude/SDL2 -Iinclude/imgui
 LIB_DIRS = -Llib
@@ -18,11 +18,12 @@ IMGUI_SRCS = $(wildcard $(IMGUI_DIR)/*.cpp)
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OUTPUT_DIR)/%.o)
 IMGUI_OBJS = $(IMGUI_SRCS:$(IMGUI_DIR)/%.cpp=$(OUTPUT_DIR)/%.o)
 
-test: src/test.cpp src/types.h 
-	clang $(CFLAGS) -o test src/test.cpp -lmingw32
+TEST_FILE_HEADERS = src/types.h src/vector.h
+TEST_FILE_SRC = src/vector.cpp
 
-vector: src/vector.cpp src/types.h src/cvec.h
-	clang $(CFLAGS) -o vector src/vector.cpp -lmingw32
+vector: $(TEST_FILE_SRC) $(TEST_FILE_HEADERS)
+	clang $(CFLAGS) -o vector $(TEST_FILE_SRC) -lmingw32
+
 
 default: $(OUTPUT_DIR)/$(PROJECTNAME)
 
@@ -34,6 +35,3 @@ $(OUTPUT_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 $(OUTPUT_DIR)/%.o: $(IMGUI_DIR)/%.cpp
 	g++ $(CFLAGS) -c $< -o $@ $(INCLUDE_DIRS)
-
-pre: 
-	g++ $(CFLAGS) -E $(SRCS) $(HEADERS) $(IMGUI_SRCS)

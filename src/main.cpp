@@ -7,6 +7,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include "types.h"
+#include "vector.h"
 
 
 #define MAX_ENTITIES 55000
@@ -234,76 +235,13 @@ player_t player;
 ////////////////////////////////////////ECS////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct vector
-{
-    u32 count;
-    u32 elem_size;
-    u32 capacity;
-    void* data;
-} vector_t;
-
-void vector_init(vector_t* vec, u32 elem_size)
-{
-    vec->count = 0;
-    vec->elem_size = elem_size;
-    vec->capacity = 5;
-    void* data = malloc(vec->elem_size * vec->capacity);
-}
-
-
-
-void _vector_resize(vector_t* vec)
-{
-    float const RESIZE_FACTOR = 1.5f;
-    u32 new_size = RESIZE_FACTOR * vec->count;
-
-    void* ptr = realloc(vec->data, new_size);
-    assert(ptr);
-
-    vec->data = ptr;
-}
-
- 
-// Returns address to insert new elem into
-void* vector_add(vector_t* vec)
-{
-    if(vec->count == vec->capacity)
-    {
-        _vector_resize(vec);
-    }
-
-    return (vec->data + (vec->elem_size * vec->count));
-}
-
-void vector_remove(vector_t* vec, u32 pos)
-{
-    assert(pos < vec->count);
-
-    void* dst = vec->data + vec->elem_size * pos;
-    void* src = dst + vec->elem_size;
-    u32 size = vec->count - pos - 1;
-
-    vec->count--;
-    memmove(dst, src, size);
-}
-
-void* vector_get(vector_t* vec, u32 pos)
-{
-    assert(pos < vec->count);
-    return vec->data + vec->elem_size * pos;
-}
-
-
-
-
-
 typedef struct component_array
 {
     u32 count;
     u32 element_size;
     u32* entity_to_index;
     u32* index_to_entity;
-    void* components;
+    vector(void) v;
 } component_array_t; 
 
 void component_array_init(component_array_t* ca, u32 element_size)
