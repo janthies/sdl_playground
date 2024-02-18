@@ -24,11 +24,11 @@ typedef struct component_array
 	void* components;
 } component_array_t;
 
-void _component_array_initialize(component_array_t* ca, u32 capacity, u32 element_size)
+void component_array_initialize(component_array_t* ca, u32 element_size)
 {
 	// Initialize primitive members
 	ca->count = 0;
-	ca->capacity = capacity;
+	ca->capacity = COMPONENT_ARRAY_DEFAULT_CAPACITY;
 	ca->element_size = element_size;
 
 	// Initialize sparse array
@@ -44,13 +44,11 @@ void _component_array_initialize(component_array_t* ca, u32 capacity, u32 elemen
 	ca->index_to_entity = (u32*) ptr;
 
 	// Initialize component data array
-	const u32 COMPONENT_DATA_SIZE = capacity * element_size;
+	const u32 COMPONENT_DATA_SIZE = COMPONENT_ARRAY_DEFAULT_CAPACITY * element_size;
 	ptr = malloc(COMPONENT_DATA_SIZE);
 	assert(ptr);
 	ca->components = ptr;
 }
-
-#define component_array_initialize(component_array_ptr, component_type) _component_array_initialize(component_array_ptr, COMPONENT_ARRAY_DEFAULT_CAPACITY, sizeof(component_type))
 
 void component_array_deinitialize(component_array_t* ca)
 {
@@ -138,6 +136,108 @@ void* component_array_get(component_array_t* ca, entity e)
 }
 
 
+typedef struct component_array_wrapper
+{
+	u32 flag;
+	component_array_t* ca;
+} component_array_wrapper_t;
+
+
+typedef struct archetype
+{
+	u32 component_mask;
+
+	vector(component_array_wrapper_t) component_arrays;
+} archetype_t;
+
+typedef struct component_1
+{
+	
+} component_1_t;
+
+typedef struct component_2
+{
+	
+} component_2_t;
+
+typedef struct component_3
+{
+	
+} component_3_t;
+
+#define COMPONENT_A_FLAG (1 << 0)
+#define COMPONENT_B_FLAG (1 << 1)
+#define COMPONENT_C_FLAG (1 << 2)
+
+#define FLAG_TO_COMPONENT_SIZE(flag) \
+	(flag == COMPONENT_A_FLAG ? sizeof(component_1_t) : \
+	(flag == COMPONENT_A_FLAG ? sizeof(component_2_t) : \
+	(flag == COMPONENT_A_FLAG ? sizeof(component_3_t) : \
+	NULL)))
+
+void archetype_initialize(archetype_t* archetype, u32 mask)
+{
+	archetype->component_mask = mask;
+	while(mask)
+	{
+		u32 const flag = (mask & (-mask)); // rightmost one
+		mask ^= flag; // turn rightmost one to zero
+
+		component_array_t* ca;
+		component_array_initialize(ca, FLAG_TO_COMPONENT_SIZE(flag));
+
+		component_array_wrapper_t wrapper = {.flag = flag, .ca = ca};
+		vector_push_back(archetype->component_arrays, wrapper);
+	}
+}
+
+/*
+void archetype_deinitialize(archetype* archetype)
+{
+	u32 mask = archetype->component_mask;
+	while(mask)
+	{
+		u32 const flag = (mask & (-mask)); // rightmost one
+		mask ^= flag; // turn rightmost one to zero
+
+		component_array_deinitialize((component_array_t*)vector_back(archetype->component_arrays));
+		//vector_pop(archetype->component_arrays);
+	}
+
+}
+
+component_array_t* archetype_component_get(archetype, component_flag)
+void archetype_entity_add(archetype, entity_id) // add entity_id to every component_array
+void archetype_entity_remove(archetype, entity_id)
+
+
+
+
+// this is some more abstract code found in ecs idk
+void* entity_component_add(entity, component)
+{
+	mask = ecs_entity_mask_get()
+	
+	masknew = mask | component
+
+	archetype_old = ecs_archetype_get(mask)
+	archetype_new = ecs_archetype_get(masknew) // create new archetype if doesn't exist
+
+	for(every 1 in mask)
+	{
+		c_o = archetype_component_get(archetype_old, current 1)
+		c_n = archetype_componeng_get(archetype_new, current 1)
+
+		component_array_add(ca, entity) = component_array_get(c_o, entity);
+	}
+
+	c_n = archetype_componeng_get(archetype_new, component)
+	return component_array_add(c_n, entity) // return 
+}
+void entity_component_remove
+
+*/
+
 typedef struct c1
 {
 	u32 val1;
@@ -147,6 +247,9 @@ typedef struct c1
 } c1_t;
 
 
+
+
+
 int main()
 {
 	printf("Hallo Welt\n");
@@ -154,7 +257,7 @@ int main()
 
 	component_array_t ca;
 
-	component_array_initialize(&ca, c1_t);
+	component_array_initialize(&ca, sizeof(c1_t));
 	
 
 

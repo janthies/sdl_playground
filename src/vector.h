@@ -79,6 +79,7 @@ typedef struct vector_metadata
         &vec[pos];  \
     })
 
+
 // pos+1 can be out of bounds when deleting the last element
 // however, in this case count will be zero, thus, memmove won't be called
 #define vector_remove(vec, pos)	\
