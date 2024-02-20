@@ -136,28 +136,18 @@ void* component_array_get(component_array_t* ca, entity e)
 }
 
 
-typedef struct component_array_wrapper
-{
-	u32 flag;
-	component_array_t* ca;
-} component_array_wrapper_t;
 
 
-typedef struct archetype
-{
-	u32 component_mask;
 
-	vector(component_array_wrapper_t) component_arrays;
-} archetype_t;
 
 typedef struct component_1
 {
-	
+	u32 val;
 } component_1_t;
 
 typedef struct component_2
 {
-	
+	float val;
 } component_2_t;
 
 typedef struct component_3
@@ -171,24 +161,82 @@ typedef struct component_3
 
 #define FLAG_TO_COMPONENT_SIZE(flag) \
 	(flag == COMPONENT_A_FLAG ? sizeof(component_1_t) : \
-	(flag == COMPONENT_A_FLAG ? sizeof(component_2_t) : \
-	(flag == COMPONENT_A_FLAG ? sizeof(component_3_t) : \
+	(flag == COMPONENT_B_FLAG ? sizeof(component_2_t) : \
+	(flag == COMPONENT_C_FLAG ? sizeof(component_3_t) : \
 	NULL)))
+
+
+
+
+
+typedef struct component_array_wrapper
+{
+	u32 flag;
+	component_array_t ca;
+} component_array_wrapper_t;
+
+typedef struct archetype
+{
+	u32 component_mask;
+	vector(component_array_wrapper_t) component_arrays;
+} archetype_t;
+
 
 void archetype_initialize(archetype_t* archetype, u32 mask)
 {
 	archetype->component_mask = mask;
+	archetype->component_arrays = NULL;
+	vector_initialize(archetype->component_arrays);
 	while(mask)
 	{
+		printf("Hello\n");
 		u32 const flag = (mask & (-mask)); // rightmost one
 		mask ^= flag; // turn rightmost one to zero
 
-		component_array_t* ca;
-		component_array_initialize(ca, FLAG_TO_COMPONENT_SIZE(flag));
+		component_array_t ca;
+		component_array_initialize(&ca, FLAG_TO_COMPONENT_SIZE(flag));
 
 		component_array_wrapper_t wrapper = {.flag = flag, .ca = ca};
+
 		vector_push_back(archetype->component_arrays, wrapper);
 	}
+}
+component_array_t* archetype_component_get(archetype_t* archetype, u32 flag)
+{
+	assert(archetype);
+	assert(archetype->component_mask & flag); // check if archetype has the requested component_array
+
+	// this loop iterates over all 1s that are part of mask from right to left
+	// it then checks whether the current rightmost one is equal to the 1
+	// requested by flag
+	// if so, we know the index of the component that the flag represents
+	int index = 0;
+	u32 mask = archetype->component_mask;
+	while(! ((mask & (-mask)) & flag))
+	{
+		mask ^= (mask & (-mask)); // disable rightmost one
+		index++;
+		printf("k\n");
+	}
+
+	return &archetype->component_arrays[index].ca;
+}
+
+void archetype_entity_add(archetype_t* archetype, entity e) // add entity_id to every component_array
+{
+	for(int i = 0; i < vector_get_size(archetype->component_arrays); i++)
+	{
+		component_array_wrapper_t* caw = (component_array_wrapper_t*) vector_get(archetype->component_arrays, i);
+		component_array_add(&caw->ca, e);
+	}
+}
+
+
+// Utility function that combines the retrieval of a component_array and the entities component inside it
+void* archetype_entity_component_get(archetype_t* archetype, entity e, u32 component_flag)
+{
+	component_array_t* ca = archetype_component_get(archetype, component_flag);
+	return component_array_get(ca, e);
 }
 
 /*
@@ -206,8 +254,6 @@ void archetype_deinitialize(archetype* archetype)
 
 }
 
-component_array_t* archetype_component_get(archetype, component_flag)
-void archetype_entity_add(archetype, entity_id) // add entity_id to every component_array
 void archetype_entity_remove(archetype, entity_id)
 
 
@@ -248,6 +294,7 @@ typedef struct c1
 
 
 
+#define COMPONENT_CAST(type, ptr) (*(type*)ptr)
 
 
 int main()
@@ -255,33 +302,17 @@ int main()
 	printf("Hallo Welt\n");
     
 
-	component_array_t ca;
+	archetype_t at;
+	archetype_initialize(&at, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
 
-	component_array_initialize(&ca, sizeof(c1_t));
-	
-
-
-	for(int i = 0; i < 24; i++)
+	for(int i = 0; i < 10; i++)
 	{
-		
-
-		component_array_add(&ca, i);
-		c1_t* comp = (c1_t*)component_array_get(&ca, i);
-
-		comp->val1 = rand() % 200;
-		comp->val2 = rand() % 10;
-		comp->val3 = 42.42f;
-		comp->val4 = -1;
-
+		archetype_entity_add(&at, i);
+		COMPONENT_CAST(component_1_t, archetype_entity_component_get(&at, i, COMPONENT_A_FLAG)).val = i;
 	}
-	
-	printf("ID\t\tValue\n");
-	for(int i = 0; i < 24; i++)
-	{
-		printf("%u\t\t%u\t%u\t%f\t%d\n", ca.index_to_entity[i], ((c1_t*)ca.components)[i].val1,((c1_t*)ca.components)[i].val2,((c1_t*)ca.components)[i].val3,((c1_t*)ca.components)[i].val4);
-	}
-	
-	component_array_deinitialize(&ca);
+
+
+	printf("%u\n", COMPONENT_CAST(component_1_t, archetype_entity_component_get(&at, 3, COMPONENT_A_FLAG)).val);
 	
 
 	printf("Tschuess\n");
