@@ -220,6 +220,7 @@ component_array_t* archetype_component_get(archetype_t* archetype, u32 flag)
 void archetype_entity_add(archetype_t* archetype, entity e) // add entity_id to every component_array
 {
 	assert(archetype);
+	printf("Adding entity %u\n", e);
 	for(int i = 0; i < vector_get_size(archetype->component_arrays); i++)
 	{
 		component_array_wrapper_t* caw = (component_array_wrapper_t*) vector_get(archetype->component_arrays, i);
@@ -239,6 +240,7 @@ void* archetype_entity_component_get(archetype_t* archetype, entity e, u32 compo
 void archetype_entity_remove(archetype_t* archetype, entity e)
 {
 	assert(archetype);
+	printf("removing entity %u\n", e);
 	for(int i = 0; i < vector_get_size(archetype->component_arrays); i++)
 	{
 		component_array_wrapper_t* caw = (component_array_wrapper_t*) vector_get(archetype->component_arrays, i);
@@ -264,7 +266,12 @@ u32 archetype_entity_count(archetype_t* archetype)
 	return archetype->component_arrays[0].ca.count; // count will be the same for every component array belonging to this archetype
 }
 
-
+typedef struct
+{
+	u32 mask;	// key
+	archetype_t archetype;
+	UT_hash_handle hh;
+} archetype_wrapper_t;
 
 
 // entities acts as a freelist
@@ -274,12 +281,9 @@ typedef struct ecs
 {
 	size_t start;
 	size_t available;
-	entity entities[MAX_ENTITIES]; 
+	entity entities[MAX_ENTITIES]; // Entity freelist
 
-	
-
-	// hm flag <--> archetype
-
+	archetype_wrapper_t* mask_to_archetype; // hm mask <--> archetype
 } ecs_t;
 
 #define ECS_STOP_INDEX UINT32_MAX
@@ -293,7 +297,7 @@ void ecs_initialize(ecs_t* ecs)
 		ecs->entities[i] = i + 1;
 	}
 
-	// hashmap initialization missing
+	ecs->mask_to_archetype = NULL;
 }
 
 
@@ -306,6 +310,7 @@ entity ecs_entity_create(ecs_t* ecs)
 	ecs->start = ecs->entities[ecs->start];
 	ecs->available--;
 
+	ecs->entities[e] = 0; // no components yet
 	printf("new entity: %u\n", e);
 
 	return e;
@@ -323,13 +328,92 @@ void ecs_entity_destroy(ecs_t* ecs, entity e)
 	printf("destroyed entity %u\n", e);
 }
 
-/*
-ecs_entity_component_add(ecs, entity, flag)
+void ecs_entity_add_component(ecs_t* ecs, entity e, u32 component_flag)
 {
+	assert(ecs);
+	u32 const current_mask = ecs->entities[e];
+	u32 const new_mask = current_mask | component_flag;
+	ecs->entities[e] = new_mask;
 
+	if(!current_mask) // fresh entity, doesn't have any data
+	{
+		// no copying needed
+	}
+
+	archetype_wrapper_t* old_archetype;
+	HASH_FIND_INT(ecs->mask_to_archetype, &current_mask, old_archetype);
+
+	archetype_wrapper_t* new_archetype;
+	HASH_FIND_INT(ecs->mask_to_archetype, &new_mask, new_archetype);
+		
+
+	printf("Old mask: %x\t New mask: %x\t - found old: %i\t found new: %i\n", current_mask, new_mask, old_archetype != NULL, new_archetype != NULL);
+
+	if(old_archetype) // copy data
+	{
+		if(new_archetype)	// copy data into existing archetype
+		{
+			archetype_entity_add(&new_archetype->archetype, e);
+
+			u32 mask = current_mask;
+			u32 rightmost_one = (mask & (-mask));
+			while(mask)
+			{
+				component_array_t* ca_old = (component_array_t*)archetype_component_get(&old_archetype->archetype, rightmost_one);
+				component_array_t* ca_new = (component_array_t*)archetype_component_get(&new_archetype->archetype, rightmost_one);
+
+				memcpy(component_array_get(ca_new, e), component_array_get(ca_old, e), ca_new->element_size);
+				
+				mask ^= rightmost_one;
+				rightmost_one = (mask & (-mask));
+			}
+		}
+		else // create new archetype and copy data
+		{
+			archetype_wrapper_t* aw = (archetype_wrapper_t*)malloc(sizeof(archetype_wrapper_t));
+			aw->mask = new_mask;
+			archetype_initialize(&aw->archetype, new_mask);
+			HASH_ADD_INT(ecs->mask_to_archetype, mask, aw);
+
+			archetype_entity_add(&aw->archetype, e);
+
+			// copy all data from old archetype to new archetype
+			u32 mask = current_mask;
+			u32 rightmost_one = (mask & (-mask));
+			while(mask)
+			{
+				component_array_t* ca_old = (component_array_t*)archetype_component_get(&old_archetype->archetype, rightmost_one);
+				component_array_t* ca_new = (component_array_t*)archetype_component_get(&aw->archetype, rightmost_one);
+
+				memcpy(component_array_get(ca_new, e), component_array_get(ca_old, e), ca_new->element_size);
+				
+				mask ^= rightmost_one;
+				rightmost_one = (mask & (-mask));
+			}
+		}
+		archetype_entity_remove(&old_archetype->archetype, e);
+	}
+	else
+	{
+		if(new_archetype) // simply add
+		{
+			archetype_entity_add(&new_archetype->archetype, e);
+		}
+		else // create and add
+		{
+			archetype_wrapper_t* aw = (archetype_wrapper_t*)malloc(sizeof(archetype_wrapper_t));
+			aw->mask = new_mask;
+			archetype_initialize(&aw->archetype, new_mask);
+			HASH_ADD_INT(ecs->mask_to_archetype, mask, aw);
+			printf("Just added first archetype\n");
+			archetype_entity_add(&aw->archetype, e);
+
+		}	
+	}
 }
 
-ecs_entity_component_remove(ecs, entity, flag)
+/*
+ecs_entity_remove_component(ecs, entity, flag)
 {
 	
 }
@@ -432,6 +516,9 @@ typedef struct
 
 
 
+
+
+
 int main()
 {
 
@@ -441,9 +528,9 @@ int main()
 	Test t2 = {.key = 17, .val = 24};
 	Test t3 = {.key = 100, .val = 200};
 
-	HASH_ADD_INT(test, key, &t1);
-	HASH_ADD_INT(test, key, &t2);
-	HASH_ADD_INT(test, key, &t3);
+	//HASH_ADD_INT(test, key, &t1);
+	//HASH_ADD_INT(test, key, &t2);
+	//HASH_ADD_INT(test, key, &t3);
 
 	Test* res;
 	int search_id = 16;
@@ -455,14 +542,19 @@ int main()
 	}
 	else
 	{
-		printf("not found");
+		printf("not found\n");
 	}
 
 	ecs_t ecs;
 	ecs_initialize(&ecs);
 
 
+	entity e = ecs_entity_create(&ecs);
+	ecs_entity_add_component(&ecs, e, COMPONENT_A_FLAG);
+	ecs_entity_add_component(&ecs, e, COMPONENT_B_FLAG);
 	
+	entity e2 = ecs_entity_create(&ecs);
+	ecs_entity_add_component(&ecs, e2, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
 
 	/*
 	printf("Hallo Welt\n");
