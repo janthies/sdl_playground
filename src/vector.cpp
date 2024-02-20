@@ -331,84 +331,48 @@ void ecs_entity_destroy(ecs_t* ecs, entity e)
 void ecs_entity_add_component(ecs_t* ecs, entity e, u32 component_flag)
 {
 	assert(ecs);
+
 	u32 const current_mask = ecs->entities[e];
 	u32 const new_mask = current_mask | component_flag;
-	ecs->entities[e] = new_mask;
 
-	if(!current_mask) // fresh entity, doesn't have any data
-	{
-		// no copying needed
-	}
 
 	archetype_wrapper_t* old_archetype;
 	HASH_FIND_INT(ecs->mask_to_archetype, &current_mask, old_archetype);
 
 	archetype_wrapper_t* new_archetype;
 	HASH_FIND_INT(ecs->mask_to_archetype, &new_mask, new_archetype);
-		
 
 	printf("Old mask: %x\t New mask: %x\t - found old: %i\t found new: %i\n", current_mask, new_mask, old_archetype != NULL, new_archetype != NULL);
 
-	if(old_archetype) // copy data
+	// Create new archetype if it doesn't yet exist
+	if(!new_archetype)
 	{
-		if(new_archetype)	// copy data into existing archetype
-		{
-			archetype_entity_add(&new_archetype->archetype, e);
-
-			u32 mask = current_mask;
-			u32 rightmost_one = (mask & (-mask));
-			while(mask)
-			{
-				component_array_t* ca_old = (component_array_t*)archetype_component_get(&old_archetype->archetype, rightmost_one);
-				component_array_t* ca_new = (component_array_t*)archetype_component_get(&new_archetype->archetype, rightmost_one);
-
-				memcpy(component_array_get(ca_new, e), component_array_get(ca_old, e), ca_new->element_size);
-				
-				mask ^= rightmost_one;
-				rightmost_one = (mask & (-mask));
-			}
-		}
-		else // create new archetype and copy data
-		{
-			archetype_wrapper_t* aw = (archetype_wrapper_t*)malloc(sizeof(archetype_wrapper_t));
-			aw->mask = new_mask;
-			archetype_initialize(&aw->archetype, new_mask);
-			HASH_ADD_INT(ecs->mask_to_archetype, mask, aw);
-
-			archetype_entity_add(&aw->archetype, e);
-
-			// copy all data from old archetype to new archetype
-			u32 mask = current_mask;
-			u32 rightmost_one = (mask & (-mask));
-			while(mask)
-			{
-				component_array_t* ca_old = (component_array_t*)archetype_component_get(&old_archetype->archetype, rightmost_one);
-				component_array_t* ca_new = (component_array_t*)archetype_component_get(&aw->archetype, rightmost_one);
-
-				memcpy(component_array_get(ca_new, e), component_array_get(ca_old, e), ca_new->element_size);
-				
-				mask ^= rightmost_one;
-				rightmost_one = (mask & (-mask));
-			}
-		}
-		archetype_entity_remove(&old_archetype->archetype, e);
+		new_archetype = (archetype_wrapper_t*)malloc(sizeof(archetype_wrapper_t));
+		new_archetype->mask = new_mask;
+		archetype_initialize(&new_archetype->archetype, new_mask);
+		HASH_ADD_INT(ecs->mask_to_archetype, mask, new_archetype);
 	}
-	else
-	{
-		if(new_archetype) // simply add
-		{
-			archetype_entity_add(&new_archetype->archetype, e);
-		}
-		else // create and add
-		{
-			archetype_wrapper_t* aw = (archetype_wrapper_t*)malloc(sizeof(archetype_wrapper_t));
-			aw->mask = new_mask;
-			archetype_initialize(&aw->archetype, new_mask);
-			HASH_ADD_INT(ecs->mask_to_archetype, mask, aw);
-			printf("Just added first archetype\n");
-			archetype_entity_add(&aw->archetype, e);
 
-		}	
+	archetype_entity_add(&new_archetype->archetype, e);
+	ecs->entities[e] = new_mask; // entity now belongs to new archetype
+		
+	// In case the old archetype exists, copy over the data
+	if(old_archetype)
+	{
+		u32 mask = current_mask;
+		u32 rightmost_one = (mask & (-mask));
+		while(mask)
+		{
+			component_array_t* ca_old = (component_array_t*)archetype_component_get(&old_archetype->archetype, rightmost_one);
+			component_array_t* ca_new = (component_array_t*)archetype_component_get(&new_archetype->archetype, rightmost_one);
+
+			memcpy(component_array_get(ca_new, e), component_array_get(ca_old, e), ca_new->element_size);
+			
+			mask ^= rightmost_one;
+			rightmost_one = (mask & (-mask));
+		}
+		
+		archetype_entity_remove(&old_archetype->archetype, e);
 	}
 }
 
@@ -555,6 +519,10 @@ int main()
 	
 	entity e2 = ecs_entity_create(&ecs);
 	ecs_entity_add_component(&ecs, e2, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
+
+	entity e3 = ecs_entity_create(&ecs);
+	ecs_entity_add_component(&ecs, e3, COMPONENT_A_FLAG);
+	ecs_entity_add_component(&ecs, e3, COMPONENT_B_FLAG);
 
 	/*
 	printf("Hallo Welt\n");
