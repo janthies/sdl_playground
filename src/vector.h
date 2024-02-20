@@ -124,6 +124,15 @@ typedef struct vector_metadata
 		_vector_set_size(*(vec_addr), 0);    \
 		_vector_set_capacity(*(vec_addr), DEFAULT_CAPACITY); \
 	} while (0)
+
+#define vector_destroy(vec)	\
+	do	\
+	{	\
+		assert(vec);	\
+		free(_vector_vec_to_base(vec));	\
+		vec = NULL;	\
+	} while (0)
+	
 	
 
 #define vector_for_each(vec, func)	\

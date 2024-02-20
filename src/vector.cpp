@@ -101,7 +101,7 @@ void component_array_remove(component_array_t* ca, entity e)
 {
 	assert(ca);	
 	assert(e < MAX_ENTITIES);
-	assert(ca->entity_to_index[e] != INVALID_ENTITY);	// entity is registered
+	assert(ca->entity_to_index[e] != INVALID_ENTITY);	// check if entity is registered
 	assert(ca->count > 0); // there is at least 1 entity -> duplicate because in that case e should be invalid?
 
 	// move last entity in index to empty spot
@@ -165,10 +165,6 @@ typedef struct component_3
 	(flag == COMPONENT_C_FLAG ? sizeof(component_3_t) : \
 	NULL)))
 
-
-
-
-
 typedef struct component_array_wrapper
 {
 	u32 flag;
@@ -189,7 +185,6 @@ void archetype_initialize(archetype_t* archetype, u32 mask)
 	vector_initialize(archetype->component_arrays);
 	while(mask)
 	{
-		printf("Hello\n");
 		u32 const flag = (mask & (-mask)); // rightmost one
 		mask ^= flag; // turn rightmost one to zero
 
@@ -216,7 +211,6 @@ component_array_t* archetype_component_get(archetype_t* archetype, u32 flag)
 	{
 		mask ^= (mask & (-mask)); // disable rightmost one
 		index++;
-		printf("k\n");
 	}
 
 	return &archetype->component_arrays[index].ca;
@@ -224,6 +218,7 @@ component_array_t* archetype_component_get(archetype_t* archetype, u32 flag)
 
 void archetype_entity_add(archetype_t* archetype, entity e) // add entity_id to every component_array
 {
+	assert(archetype);
 	for(int i = 0; i < vector_get_size(archetype->component_arrays); i++)
 	{
 		component_array_wrapper_t* caw = (component_array_wrapper_t*) vector_get(archetype->component_arrays, i);
@@ -235,30 +230,38 @@ void archetype_entity_add(archetype_t* archetype, entity e) // add entity_id to 
 // Utility function that combines the retrieval of a component_array and the entities component inside it
 void* archetype_entity_component_get(archetype_t* archetype, entity e, u32 component_flag)
 {
+	assert(archetype);
 	component_array_t* ca = archetype_component_get(archetype, component_flag);
 	return component_array_get(ca, e);
 }
 
-/*
-void archetype_deinitialize(archetype* archetype)
+void archetype_entity_remove(archetype_t* archetype, entity e)
 {
-	u32 mask = archetype->component_mask;
-	while(mask)
+	assert(archetype);
+	for(int i = 0; i < vector_get_size(archetype->component_arrays); i++)
 	{
-		u32 const flag = (mask & (-mask)); // rightmost one
-		mask ^= flag; // turn rightmost one to zero
-
-		component_array_deinitialize((component_array_t*)vector_back(archetype->component_arrays));
-		//vector_pop(archetype->component_arrays);
+		component_array_wrapper_t* caw = (component_array_wrapper_t*) vector_get(archetype->component_arrays, i);
+		component_array_remove(&caw->ca, e);
 	}
-
 }
 
-void archetype_entity_remove(archetype, entity_id)
+void archetype_deinitialize(archetype* archetype)
+{
+	assert(archetype);
+	for(int i = 0; i < vector_get_size(archetype->component_arrays); i++)
+	{
+		component_array_deinitialize(&(archetype->component_arrays[i].ca));
+	}
+	archetype->component_mask = 0; // doesn't contain any component arrays
+	vector_destroy(archetype->component_arrays);
+}
 
 
 
 
+
+
+/*
 // this is some more abstract code found in ecs idk
 void* entity_component_add(entity, component)
 {
@@ -280,8 +283,6 @@ void* entity_component_add(entity, component)
 	c_n = archetype_componeng_get(archetype_new, component)
 	return component_array_add(c_n, entity) // return 
 }
-void entity_component_remove
-
 */
 
 typedef struct c1
@@ -311,9 +312,17 @@ int main()
 		COMPONENT_CAST(component_1_t, archetype_entity_component_get(&at, i, COMPONENT_A_FLAG)).val = i;
 	}
 
+	COMPONENT_CAST(component_2_t, archetype_entity_component_get(&at, 3, COMPONENT_B_FLAG)).val = 69.42f;
 
-	printf("%u\n", COMPONENT_CAST(component_1_t, archetype_entity_component_get(&at, 3, COMPONENT_A_FLAG)).val);
+	printf("%f\n", COMPONENT_CAST(component_2_t, archetype_entity_component_get(&at, 3, COMPONENT_B_FLAG)).val);
+
+	archetype_entity_remove(&at, 2);
+
+	archetype_deinitialize(&at);
+
 	
 
 	printf("Tschuess\n");
 }
+
+
