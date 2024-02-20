@@ -7,9 +7,10 @@
 
 
 #include "vector.h"
+#include "uthash.h"
 
 
-#define MAX_ENTITIES 1024 * 4
+#define MAX_ENTITIES 1200
 #define COMPONENT_ARRAY_DEFAULT_CAPACITY 16
 #define INVALID_ENTITY UINT32_MAX
 #define entity u32
@@ -245,7 +246,7 @@ void archetype_entity_remove(archetype_t* archetype, entity e)
 	}
 }
 
-void archetype_deinitialize(archetype* archetype)
+void archetype_deinitialize(archetype_t* archetype)
 {
 	assert(archetype);
 	for(int i = 0; i < vector_get_size(archetype->component_arrays); i++)
@@ -256,6 +257,118 @@ void archetype_deinitialize(archetype* archetype)
 	vector_destroy(archetype->component_arrays);
 }
 
+u32 archetype_entity_count(archetype_t* archetype)
+{
+	assert(archetype);
+	if(! archetype->component_arrays) { return 0; } // will be false if there are no component arrays
+	return archetype->component_arrays[0].ca.count; // count will be the same for every component array belonging to this archetype
+}
+
+
+
+
+// entities acts as a freelist
+// if start points to an index, the data at that place isn't considered to be a component mask
+// instead, the data is considered to be a pointer to the next free index holding a dead entity
+typedef struct ecs
+{
+	size_t start;
+	size_t available;
+	entity entities[MAX_ENTITIES]; 
+
+	
+
+	// hm flag <--> archetype
+
+} ecs_t;
+
+#define ECS_STOP_INDEX UINT32_MAX
+void ecs_initialize(ecs_t* ecs)
+{
+	assert(ecs);
+	ecs->start = 0;
+	ecs->available = MAX_ENTITIES;
+	for(int i = 0; i < MAX_ENTITIES; i++)
+	{
+		ecs->entities[i] = i + 1;
+	}
+
+	// hashmap initialization missing
+}
+
+
+entity ecs_entity_create(ecs_t* ecs)
+{
+	assert(ecs);
+	assert(ecs->available);
+
+	entity e = ecs->start;
+	ecs->start = ecs->entities[ecs->start];
+	ecs->available--;
+
+	printf("new entity: %u\n", e);
+
+	return e;
+}
+
+void ecs_entity_destroy(ecs_t* ecs, entity e)
+{
+	assert(ecs);
+	// can't make sure that the entity is indeed being used
+
+	ecs->entities[e] = ecs->start;
+	ecs->start = e;
+
+	ecs->available++;
+	printf("destroyed entity %u\n", e);
+}
+
+/*
+ecs_entity_component_add(ecs, entity, flag)
+{
+
+}
+
+ecs_entity_component_remove(ecs, entity, flag)
+{
+	
+}
+
+// should be more efficient than repeated component_add or component_remove calls
+ecs_entity_component_set(ecs, entity, flag)
+{
+	
+}
+
+mask ecs_entity_component_mask_get(ecs, entity); // needed for removing multiple components at once | old mask can be & ~newMask in order to selectively disable components
+
+
+
+vector(archetype) ecs_archetypes_get(ecs_t* ecs, u32 mask)
+{
+	// return a vector of all archetypes, that have mask component_arrays as subgroup
+}
+// This function can be called by a system
+RandomSystemFunction()
+{
+	vector(archetype) archetypes = ecs_archetypes_get(ecs, COMPONENT_X | COMPONENT_Y | COMPONENT_Z);
+
+	for every archetype
+	{
+		component_arrayX = archetype_component_get(archetype, COMPONENT_X);
+		component_arrayY = archetype_component_get(archetype, COMPONENT_Y);
+		component_arrayZ = archetype_component_get(archetype, COMPONENT_Z);
+
+		for(int i = 0; i < archetype_entity_count(); i++)
+		{
+			// do calculations
+			component_array_X[i] += component_array_Y[i];
+		}
+	}
+
+}
+
+*/
 
 
 
@@ -285,24 +398,76 @@ void* entity_component_add(entity, component)
 }
 */
 
-typedef struct c1
-{
-	u32 val1;
-	u32 val2;
-	float val3;
-	int val4;
-} c1_t;
-
-
-
 #define COMPONENT_CAST(type, ptr) (*(type*)ptr)
+
+void print_list(ecs_t* ecs)
+{
+	printf("List: \n");
+	for(int i = 0; i < 8; i++)
+	{
+		printf("E: %u, Ptr: %u\n", i, ecs->entities[i]);
+	}
+	printf("\n\n");
+}
+
+void shuffle(u32* unique_indices)
+{
+	for(int i = 0; i < 3000; i++)
+	{
+		u32 const left = rand() % MAX_ENTITIES;
+		u32 const right = rand() % MAX_ENTITIES;
+
+		u32 const a = unique_indices[left];
+		unique_indices[left] = unique_indices[right];
+		unique_indices[right] = a;
+	}
+}
+
+typedef struct 
+{
+	int key;
+	u32 val;
+	UT_hash_handle hh;
+} Test;
+
 
 
 int main()
 {
-	printf("Hallo Welt\n");
-    
 
+	Test* test = NULL;
+
+	Test t1 = {.key = 42, .val = 69};
+	Test t2 = {.key = 17, .val = 24};
+	Test t3 = {.key = 100, .val = 200};
+
+	HASH_ADD_INT(test, key, &t1);
+	HASH_ADD_INT(test, key, &t2);
+	HASH_ADD_INT(test, key, &t3);
+
+	Test* res;
+	int search_id = 16;
+	HASH_FIND_INT(test, &search_id , res);
+
+	if(res)
+	{
+		printf("Found val: %u\n", res->val);
+	}
+	else
+	{
+		printf("not found");
+	}
+
+	ecs_t ecs;
+	ecs_initialize(&ecs);
+
+
+	
+
+	/*
+	printf("Hallo Welt\n");
+
+    
 	archetype_t at;
 	archetype_initialize(&at, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
 
@@ -320,9 +485,10 @@ int main()
 
 	archetype_deinitialize(&at);
 
-	
-
 	printf("Tschuess\n");
+	
+	*/
+
 }
 
 
