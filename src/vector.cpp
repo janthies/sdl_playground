@@ -199,8 +199,13 @@ void archetype_initialize(archetype_t* archetype, u32 mask)
 }
 component_array_t* archetype_component_get(archetype_t* archetype, u32 flag)
 {
+	// This check can be flawed if nonsense data is supplied to this function
+	// This could happen as a result of an out of bounds read, after querying
+	// a list of archetypes from the ecs
 	assert(archetype);
-	assert(archetype->component_mask & flag); // check if archetype has the requested component_array
+
+	// check if archetype has the requested component_array
+	assert(archetype->component_mask & flag);
 
 	// this loop iterates over all 1s that are part of mask from right to left
 	// it then checks whether the current rightmost one is equal to the 1
@@ -300,7 +305,6 @@ void ecs_initialize(ecs_t* ecs)
 	ecs->mask_to_archetype = NULL;
 }
 
-
 entity ecs_entity_create(ecs_t* ecs)
 {
 	assert(ecs);
@@ -328,13 +332,31 @@ void ecs_entity_destroy(ecs_t* ecs, entity e)
 	printf("destroyed entity %u\n", e);
 }
 
+u32 ecs_entity_get_mask(ecs_t* ecs, entity e)
+{
+	return ecs->entities[e];
+}
+
+void* ecs_entity_component_get(ecs_t* ecs, entity e, u32 component_flag)
+{
+	assert(ecs);
+	u32 const entity_mask = ecs->entities[e];
+
+	archetype_wrapper_t* aw = NULL;
+	HASH_FIND_INT(ecs->mask_to_archetype, &entity_mask, aw);
+	assert(aw);
+
+	void* component = archetype_entity_component_get(&aw->archetype, e, component_flag);
+	assert(component);
+	return component;
+}
+
 void ecs_entity_add_component(ecs_t* ecs, entity e, u32 component_flag)
 {
 	assert(ecs);
 
 	u32 const current_mask = ecs->entities[e];
 	u32 const new_mask = current_mask | component_flag;
-
 
 	archetype_wrapper_t* old_archetype;
 	HASH_FIND_INT(ecs->mask_to_archetype, &current_mask, old_archetype);
@@ -376,6 +398,24 @@ void ecs_entity_add_component(ecs_t* ecs, entity e, u32 component_flag)
 	}
 }
 
+vector(archetype_t*) ecs_archetypes_get(ecs_t* ecs, u32 mask)
+{
+	archetype_wrapper_t* aw;
+	vector(archetype_t*) archetypes = NULL;
+	vector_initialize(archetypes);
+	
+	for(aw = ecs->mask_to_archetype; aw != NULL; aw = (archetype_wrapper_t*)aw->hh.next)
+	{
+		if((aw->mask & mask) == mask)
+		{
+			vector_push_back(archetypes, &aw->archetype);
+		}
+	}
+
+	// Can be empty if no archetypes match the mask
+	return archetypes;
+}
+
 /*
 ecs_entity_remove_component(ecs, entity, flag)
 {
@@ -392,10 +432,7 @@ mask ecs_entity_component_mask_get(ecs, entity); // needed for removing multiple
 
 
 
-vector(archetype) ecs_archetypes_get(ecs_t* ecs, u32 mask)
-{
-	// return a vector of all archetypes, that have mask component_arrays as subgroup
-}
+
 // This function can be called by a system
 RandomSystemFunction()
 {
@@ -478,51 +515,55 @@ typedef struct
 	UT_hash_handle hh;
 } Test;
 
+#define COMPONENT_ARRAY_CAST(type, compoennt_array) (*(type*)component_array)
 
+void SystemAB(ecs_t* ecs)
+{
+	printf("System AB\n");
+	vector(archetype*) archetypes = ecs_archetypes_get(ecs, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
+	for(int i = 0; i < vector_get_size(archetypes); i++)
+	{
+		archetype_t* at = (archetype_t*)*vector_get(archetypes, i);
+		component_array_t* component_a = archetype_component_get(at, COMPONENT_A_FLAG);
+		component_array_t* component_b = archetype_component_get(at, COMPONENT_B_FLAG);
+		
+		for(int j = 0; j < component_a->count; j++)
+		{
+			printf("%u\t%f\n", 	((component_1_t*)(component_a->components))[j].val, ((component_2_t*)(component_b->components))[j].val);
+		}
+	}
+}
+
+void SystemB(ecs_t* ecs)
+{
+	
+}
 
 
 
 
 int main()
 {
-
-	Test* test = NULL;
-
-	Test t1 = {.key = 42, .val = 69};
-	Test t2 = {.key = 17, .val = 24};
-	Test t3 = {.key = 100, .val = 200};
-
-	//HASH_ADD_INT(test, key, &t1);
-	//HASH_ADD_INT(test, key, &t2);
-	//HASH_ADD_INT(test, key, &t3);
-
-	Test* res;
-	int search_id = 16;
-	HASH_FIND_INT(test, &search_id , res);
-
-	if(res)
-	{
-		printf("Found val: %u\n", res->val);
-	}
-	else
-	{
-		printf("not found\n");
-	}
-
 	ecs_t ecs;
 	ecs_initialize(&ecs);
 
+	for(int i = 0; i < 500; i++)
+	{
+		entity e = ecs_entity_create(&ecs);
+		ecs_entity_add_component(&ecs, e, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
+		COMPONENT_CAST(component_1_t, ecs_entity_component_get(&ecs, e, COMPONENT_A_FLAG)).val = rand() % 10;
+		COMPONENT_CAST(component_2_t, ecs_entity_component_get(&ecs, e, COMPONENT_B_FLAG)).val = (rand() % 100000) / (float)10000;
+	}
 
-	entity e = ecs_entity_create(&ecs);
-	ecs_entity_add_component(&ecs, e, COMPONENT_A_FLAG);
-	ecs_entity_add_component(&ecs, e, COMPONENT_B_FLAG);
-	
-	entity e2 = ecs_entity_create(&ecs);
-	ecs_entity_add_component(&ecs, e2, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
+	for(int i = 0; i < 5; i++)
+	{
+		entity e = ecs_entity_create(&ecs);
+		ecs_entity_add_component(&ecs, e, COMPONENT_B_FLAG);
+		COMPONENT_CAST(component_2_t, ecs_entity_component_get(&ecs, e, COMPONENT_B_FLAG)).val = (rand() % 100) / (float)10;
+	}
 
-	entity e3 = ecs_entity_create(&ecs);
-	ecs_entity_add_component(&ecs, e3, COMPONENT_A_FLAG);
-	ecs_entity_add_component(&ecs, e3, COMPONENT_B_FLAG);
+
+	SystemAB(&ecs);
 
 	/*
 	printf("Hallo Welt\n");
