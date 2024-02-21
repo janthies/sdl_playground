@@ -536,7 +536,18 @@ void SystemAB(ecs_t* ecs)
 
 void SystemB(ecs_t* ecs)
 {
-	
+	printf("System B\n");
+	vector(archetype*) archetypes = ecs_archetypes_get(ecs, COMPONENT_B_FLAG);
+	for(int i = 0; i < vector_get_size(archetypes); i++)
+	{
+		archetype_t* at = (archetype_t*)*vector_get(archetypes, i);
+		component_array_t* component_b = archetype_component_get(at, COMPONENT_B_FLAG);
+		
+		for(int j = 0; j < component_b->count; j++)
+		{
+			printf("%f\n", ((component_2_t*)(component_b->components))[j].val);
+		}
+	}
 }
 
 
@@ -547,7 +558,7 @@ int main()
 	ecs_t ecs;
 	ecs_initialize(&ecs);
 
-	for(int i = 0; i < 500; i++)
+	for(int i = 0; i < 5; i++)
 	{
 		entity e = ecs_entity_create(&ecs);
 		ecs_entity_add_component(&ecs, e, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
@@ -564,6 +575,7 @@ int main()
 
 
 	SystemAB(&ecs);
+	SystemB(&ecs);
 
 	/*
 	printf("Hallo Welt\n");
