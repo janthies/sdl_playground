@@ -6,8 +6,11 @@
 #include <stdlib.h>
 
 
-#include "vector.h"
+
 #include "uthash.h"
+#include "vector.h"
+
+#include "components.h"
 
 
 #define MAX_ENTITIES 1200
@@ -136,35 +139,6 @@ void* component_array_get(component_array_t* ca, entity e)
 	return (void*)(((char*)ca->components) + (INDEX * ca->element_size));
 }
 
-
-
-
-
-
-typedef struct component_1
-{
-	u32 val;
-} component_1_t;
-
-typedef struct component_2
-{
-	float val;
-} component_2_t;
-
-typedef struct component_3
-{
-	
-} component_3_t;
-
-#define COMPONENT_A_FLAG (1 << 0)
-#define COMPONENT_B_FLAG (1 << 1)
-#define COMPONENT_C_FLAG (1 << 2)
-
-#define FLAG_TO_COMPONENT_SIZE(flag) \
-	(flag == COMPONENT_A_FLAG ? sizeof(component_1_t) : \
-	(flag == COMPONENT_B_FLAG ? sizeof(component_2_t) : \
-	(flag == COMPONENT_C_FLAG ? sizeof(component_3_t) : \
-	NULL)))
 
 typedef struct component_array_wrapper
 {
@@ -416,84 +390,7 @@ vector(archetype_t*) ecs_archetypes_get(ecs_t* ecs, u32 mask)
 	return archetypes;
 }
 
-/*
-ecs_entity_remove_component(ecs, entity, flag)
-{
-	
-}
-
-// should be more efficient than repeated component_add or component_remove calls
-ecs_entity_component_set(ecs, entity, flag)
-{
-	
-}
-
-mask ecs_entity_component_mask_get(ecs, entity); // needed for removing multiple components at once | old mask can be & ~newMask in order to selectively disable components
-
-
-
-
-// This function can be called by a system
-RandomSystemFunction()
-{
-	vector(archetype) archetypes = ecs_archetypes_get(ecs, COMPONENT_X | COMPONENT_Y | COMPONENT_Z);
-
-	for every archetype
-	{
-		component_arrayX = archetype_component_get(archetype, COMPONENT_X);
-		component_arrayY = archetype_component_get(archetype, COMPONENT_Y);
-		component_arrayZ = archetype_component_get(archetype, COMPONENT_Z);
-
-		for(int i = 0; i < archetype_entity_count(); i++)
-		{
-			// do calculations
-			component_array_X[i] += component_array_Y[i];
-		}
-	}
-
-}
-
-*/
-
-
-
-
-
-/*
-// this is some more abstract code found in ecs idk
-void* entity_component_add(entity, component)
-{
-	mask = ecs_entity_mask_get()
-	
-	masknew = mask | component
-
-	archetype_old = ecs_archetype_get(mask)
-	archetype_new = ecs_archetype_get(masknew) // create new archetype if doesn't exist
-
-	for(every 1 in mask)
-	{
-		c_o = archetype_component_get(archetype_old, current 1)
-		c_n = archetype_componeng_get(archetype_new, current 1)
-
-		component_array_add(ca, entity) = component_array_get(c_o, entity);
-	}
-
-	c_n = archetype_componeng_get(archetype_new, component)
-	return component_array_add(c_n, entity) // return 
-}
-*/
-
 #define COMPONENT_CAST(type, ptr) (*(type*)ptr)
-
-void print_list(ecs_t* ecs)
-{
-	printf("List: \n");
-	for(int i = 0; i < 8; i++)
-	{
-		printf("E: %u, Ptr: %u\n", i, ecs->entities[i]);
-	}
-	printf("\n\n");
-}
 
 void shuffle(u32* unique_indices)
 {
@@ -550,7 +447,38 @@ void SystemB(ecs_t* ecs)
 	}
 }
 
+void script_system(ecs_t* ecs)
+{
+	vector(archetype*) archetypes = ecs_archetypes_get(ecs, COMPONENT_SCRIPT_FLAG);
+	for(int i = 0; i < vector_get_size(archetypes); i++)
+	{
+		archetype_t* at = (archetype_t*)*vector_get(archetypes, i);
+		component_array_t* scripts = archetype_component_get(at, COMPONENT_SCRIPT_FLAG);
+		
+		for(int j = 0; j < scripts->count; j++)
+		{
+			script_c* s = &((script_c*)(scripts->components))[j];
+			
+			s->on_update(s->data);
+		}
+	}
+}
 
+
+void create_player()
+{
+	printf("I just got created!\n");
+}
+
+void update_player(void* data)
+{
+	printf("update update update: Data - %u\n", *(u32*)data);
+}
+
+void destroy_player()
+{
+	printf("oh nooo!!\n");
+}
 
 
 int main()
@@ -573,9 +501,27 @@ int main()
 		COMPONENT_CAST(component_2_t, ecs_entity_component_get(&ecs, e, COMPONENT_B_FLAG)).val = (rand() % 100) / (float)10;
 	}
 
+	entity player = ecs_entity_create(&ecs);
+	ecs_entity_add_component(&ecs, player, COMPONENT_SCRIPT_FLAG);
+
+	
+	u32 data = 42;
+	script_c custom_script = {
+		.data =  (void*)&data, 
+		.on_create = create_player, 
+		.on_update = update_player,
+		.on_destroy = destroy_player};
+
+
+	COMPONENT_CAST(script_c, ecs_entity_component_get(&ecs, player, COMPONENT_SCRIPT_FLAG)) = custom_script;
+
+
+
 
 	SystemAB(&ecs);
 	SystemB(&ecs);
+
+	script_system(&ecs);
 
 	/*
 	printf("Hallo Welt\n");
