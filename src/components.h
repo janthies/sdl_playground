@@ -17,12 +17,21 @@ typedef struct component_3
 	
 } component_3_t;
 
+#define MAX_SCRIPT_DATA 64
+
+typedef struct script_data
+{
+	entity e;
+	float timestep; // seconds
+	void* user_data;
+} script_data_t;
+
 typedef struct script
 {
+	bool running;
     void* data;
-    void(*on_create)();
-    void(*on_update)(void*);
-    void(*on_destroy)();
+    void(*on_create)(script_data_t*);
+    void(*on_update)(script_data_t*);
 } script_c;
 
 #define COMPONENT_A_FLAG (1 << 0)

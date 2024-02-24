@@ -35,3 +35,8 @@ $(OUTPUT_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 $(OUTPUT_DIR)/%.o: $(IMGUI_DIR)/%.cpp
 	g++ $(CFLAGS) -c $< -o $@ $(INCLUDE_DIRS)
+
+
+.PHONY: run
+run: vector
+	./vector.exe

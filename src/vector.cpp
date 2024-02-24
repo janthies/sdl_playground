@@ -16,7 +16,7 @@
 #define MAX_ENTITIES 1200
 #define COMPONENT_ARRAY_DEFAULT_CAPACITY 16
 #define INVALID_ENTITY UINT32_MAX
-#define entity u32
+
 
 typedef struct component_array
 {
@@ -447,7 +447,7 @@ void SystemB(ecs_t* ecs)
 	}
 }
 
-void script_system(ecs_t* ecs)
+void script_system(ecs_t* ecs, float ts)
 {
 	vector(archetype*) archetypes = ecs_archetypes_get(ecs, COMPONENT_SCRIPT_FLAG);
 	for(int i = 0; i < vector_get_size(archetypes); i++)
@@ -458,27 +458,67 @@ void script_system(ecs_t* ecs)
 		for(int j = 0; j < scripts->count; j++)
 		{
 			script_c* s = &((script_c*)(scripts->components))[j];
+			entity eid = scripts->index_to_entity[j];
+
+			script_data_t data = {.e = eid, .timestep = ts, .user_data = s->data};
+
+			if(!s->running && s->on_create)
+			{
+				s->on_create(&data);
+				s->running = true;
+			}
 			
-			s->on_update(s->data);
+			s->on_update(&data);
 		}
 	}
 }
 
+typedef struct playerdata
+{
+	u32 num;
+	float runtime;
+} playerdata_t;
 
-void create_player()
+
+void create_player(script_data_t* data)
 {
 	printf("I just got created!\n");
 }
 
-void update_player(void* data)
+void update_player(script_data_t* data)
 {
-	printf("update update update: Data - %u\n", *(u32*)data);
+	printf("Hello target\t");
+
+	playerdata_t* pd = (playerdata_t*)data->user_data;
+
+	printf("I am entity: %u\t", pd->num);
+	printf("Running since: %f\t", pd->runtime);
+
+	pd->runtime += data->timestep;
+
+
+	if(pd->runtime > 1.f)
+	{
+		//ecs_entity_remove_component(); NOT IMPLEMENTED ... components should probably be tagged and then the vector should be compacted at the end of the run
+	}
+
+	
+
 }
 
-void destroy_player()
+void update_button(script_data_t* data)
 {
-	printf("oh nooo!!\n");
+	printf("Hello Button\t");
+	printf("I am entity: %u\n", data->e);
 }
+
+
+void ecs_entity_add_script(ecs_t* ecs, entity e, script_c script)
+{
+	COMPONENT_CAST(script_c, ecs_entity_component_get(ecs, e, COMPONENT_SCRIPT_FLAG)) = script;
+	COMPONENT_CAST(script_c, ecs_entity_component_get(ecs, e, COMPONENT_SCRIPT_FLAG)).running = false;
+}
+
 
 
 int main()
@@ -504,50 +544,39 @@ int main()
 	entity player = ecs_entity_create(&ecs);
 	ecs_entity_add_component(&ecs, player, COMPONENT_SCRIPT_FLAG);
 
+	entity button = ecs_entity_create(&ecs);
+	ecs_entity_add_component(&ecs, button, COMPONENT_SCRIPT_FLAG);
+
+	entity button2 = ecs_entity_create(&ecs);
+	ecs_entity_add_component(&ecs, button2, COMPONENT_SCRIPT_FLAG);
 	
-	u32 data = 42;
-	script_c custom_script = {
-		.data =  (void*)&data, 
-		.on_create = create_player, 
-		.on_update = update_player,
-		.on_destroy = destroy_player};
+	playerdata_t pd = {.num = 42, .runtime = 0.f};
 
+	ecs_entity_add_script(&ecs, player, {
+		.data =  (void*)&pd,  
+		.on_create = create_player,
+		.on_update = update_player
+	});
 
-	COMPONENT_CAST(script_c, ecs_entity_component_get(&ecs, player, COMPONENT_SCRIPT_FLAG)) = custom_script;
+	ecs_entity_add_script(&ecs, button, {
+		.on_update = update_button
+	});
 
+	ecs_entity_add_script(&ecs, button2, {
+		.on_update = update_button
+	});
 
 
 
 	SystemAB(&ecs);
 	SystemB(&ecs);
 
-	script_system(&ecs);
-
-	/*
-	printf("Hallo Welt\n");
-
-    
-	archetype_t at;
-	archetype_initialize(&at, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
-
-	for(int i = 0; i < 10; i++)
-	{
-		archetype_entity_add(&at, i);
-		COMPONENT_CAST(component_1_t, archetype_entity_component_get(&at, i, COMPONENT_A_FLAG)).val = i;
-	}
-
-	COMPONENT_CAST(component_2_t, archetype_entity_component_get(&at, 3, COMPONENT_B_FLAG)).val = 69.42f;
-
-	printf("%f\n", COMPONENT_CAST(component_2_t, archetype_entity_component_get(&at, 3, COMPONENT_B_FLAG)).val);
-
-	archetype_entity_remove(&at, 2);
-
-	archetype_deinitialize(&at);
-
-	printf("Tschuess\n");
-	
-	*/
-
+	script_system(&ecs, 0.2f);
+	script_system(&ecs, 0.2f);
+	script_system(&ecs, 0.2f);
+	script_system(&ecs, 0.2f);
+	script_system(&ecs, 0.2f);
+	script_system(&ecs, 0.2f);
 }
 
 
