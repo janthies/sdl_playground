@@ -1,7 +1,7 @@
 PROJECTNAME = project
 OUTPUT_DIR = build
 
-CFLAGS= -Wno-narrowing -fpermissive -g -fsanitize=address
+CFLAGS= -std=c++17 -Wno-narrowing -fpermissive -g -fsanitize=address
 
 INCLUDE_DIRS = -Iinclude/SDL2 -Iinclude/imgui
 LIB_DIRS = -Llib
@@ -18,11 +18,12 @@ IMGUI_SRCS = $(wildcard $(IMGUI_DIR)/*.cpp)
 OBJS = $(SRCS:$(SRC_DIR)/%.cpp=$(OUTPUT_DIR)/%.o)
 IMGUI_OBJS = $(IMGUI_SRCS:$(IMGUI_DIR)/%.cpp=$(OUTPUT_DIR)/%.o)
 
+TEST_FLAGS = -std=c11 -Wno-narrowing -fpermissive -g -fsanitize=address
 TEST_FILE_HEADERS = src/types.h src/vector.h
-TEST_FILE_SRC = src/vector.cpp
+TEST_FILE_SRC = src/vector.c
 
 vector: $(TEST_FILE_SRC) $(TEST_FILE_HEADERS)
-	clang $(CFLAGS) -o vector $(TEST_FILE_SRC) -lmingw32
+	clang $(TEST_FLAGS) -o vector $(TEST_FILE_SRC) -lmingw32
 
 
 default: $(OUTPUT_DIR)/$(PROJECTNAME)

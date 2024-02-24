@@ -12,5 +12,9 @@ typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 
+typedef u8 bool;
+#define true 1
+#define false 0
+
 #define entity u32
 #endif  

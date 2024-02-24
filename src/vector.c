@@ -372,6 +372,13 @@ void ecs_entity_add_component(ecs_t* ecs, entity e, u32 component_flag)
 	}
 }
 
+entity ecs_entity_create_wf(ecs_t* ecs, u32 component_flag)
+{
+	entity e = ecs_entity_create(ecs);
+	ecs_entity_add_component(ecs, e, component_flag);
+	return e;
+}
+
 vector(archetype_t*) ecs_archetypes_get(ecs_t* ecs, u32 mask)
 {
 	archetype_wrapper_t* aw;
@@ -417,7 +424,7 @@ typedef struct
 void SystemAB(ecs_t* ecs)
 {
 	printf("System AB\n");
-	vector(archetype*) archetypes = ecs_archetypes_get(ecs, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
+	vector(archetype_t*) archetypes = ecs_archetypes_get(ecs, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
 	for(int i = 0; i < vector_get_size(archetypes); i++)
 	{
 		archetype_t* at = (archetype_t*)*vector_get(archetypes, i);
@@ -434,7 +441,7 @@ void SystemAB(ecs_t* ecs)
 void SystemB(ecs_t* ecs)
 {
 	printf("System B\n");
-	vector(archetype*) archetypes = ecs_archetypes_get(ecs, COMPONENT_B_FLAG);
+	vector(archetype_t*) archetypes = ecs_archetypes_get(ecs, COMPONENT_B_FLAG);
 	for(int i = 0; i < vector_get_size(archetypes); i++)
 	{
 		archetype_t* at = (archetype_t*)*vector_get(archetypes, i);
@@ -449,7 +456,7 @@ void SystemB(ecs_t* ecs)
 
 void script_system(ecs_t* ecs, float ts)
 {
-	vector(archetype*) archetypes = ecs_archetypes_get(ecs, COMPONENT_SCRIPT_FLAG);
+	vector(archetype_t*) archetypes = ecs_archetypes_get(ecs, COMPONENT_SCRIPT_FLAG);
 	for(int i = 0; i < vector_get_size(archetypes); i++)
 	{
 		archetype_t* at = (archetype_t*)*vector_get(archetypes, i);
@@ -496,14 +503,10 @@ void update_player(script_data_t* data)
 
 	pd->runtime += data->timestep;
 
-
 	if(pd->runtime > 1.f)
 	{
 		//ecs_entity_remove_component(); NOT IMPLEMENTED ... components should probably be tagged and then the vector should be compacted at the end of the run
 	}
-
-	
-
 }
 
 void update_button(script_data_t* data)
@@ -512,62 +515,55 @@ void update_button(script_data_t* data)
 	printf("I am entity: %u\n", data->e);
 }
 
+#define GET_COMPONENT(ecs, e, type) (*(type*)(ecs_entity_component_get((ecs), e, COMPONENT_TO_FLAG(type))))
 
 void ecs_entity_add_script(ecs_t* ecs, entity e, script_c script)
 {
-	COMPONENT_CAST(script_c, ecs_entity_component_get(ecs, e, COMPONENT_SCRIPT_FLAG)) = script;
-	COMPONENT_CAST(script_c, ecs_entity_component_get(ecs, e, COMPONENT_SCRIPT_FLAG)).running = false;
+	script.running = false;
+	GET_COMPONENT(ecs, e, script_c) = script;
 }
-
-
 
 int main()
 {
 	ecs_t ecs;
 	ecs_initialize(&ecs);
 
+	
 	for(int i = 0; i < 5; i++)
 	{
-		entity e = ecs_entity_create(&ecs);
-		ecs_entity_add_component(&ecs, e, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
-		COMPONENT_CAST(component_1_t, ecs_entity_component_get(&ecs, e, COMPONENT_A_FLAG)).val = rand() % 10;
-		COMPONENT_CAST(component_2_t, ecs_entity_component_get(&ecs, e, COMPONENT_B_FLAG)).val = (rand() % 100000) / (float)10000;
+		entity e = ecs_entity_create_wf(&ecs, COMPONENT_A_FLAG | COMPONENT_B_FLAG);
+		GET_COMPONENT(&ecs, e, component_1_t).val = rand() % 10;
+		GET_COMPONENT(&ecs, e, component_2_t).val = (rand() % 100000) / (float)10000;
 	}
 
 	for(int i = 0; i < 5; i++)
 	{
-		entity e = ecs_entity_create(&ecs);
-		ecs_entity_add_component(&ecs, e, COMPONENT_B_FLAG);
-		COMPONENT_CAST(component_2_t, ecs_entity_component_get(&ecs, e, COMPONENT_B_FLAG)).val = (rand() % 100) / (float)10;
+		entity e = ecs_entity_create_wf(&ecs, COMPONENT_B_FLAG);
+		GET_COMPONENT(&ecs, e, component_2_t).val = (rand() % 100) / (float)10;
 	}
 
-	entity player = ecs_entity_create(&ecs);
-	ecs_entity_add_component(&ecs, player, COMPONENT_SCRIPT_FLAG);
-
-	entity button = ecs_entity_create(&ecs);
-	ecs_entity_add_component(&ecs, button, COMPONENT_SCRIPT_FLAG);
-
-	entity button2 = ecs_entity_create(&ecs);
-	ecs_entity_add_component(&ecs, button2, COMPONENT_SCRIPT_FLAG);
+	entity player = ecs_entity_create_wf(&ecs, COMPONENT_SCRIPT_FLAG);
+	entity button = ecs_entity_create_wf(&ecs, COMPONENT_SCRIPT_FLAG);
+	entity button2 = ecs_entity_create_wf(&ecs, COMPONENT_SCRIPT_FLAG);
 	
 	playerdata_t pd = {.num = 42, .runtime = 0.f};
 
-	ecs_entity_add_script(&ecs, player, {
+	ecs_entity_add_script(&ecs, player, (script_c){
 		.data =  (void*)&pd,  
 		.on_create = create_player,
 		.on_update = update_player
 	});
 
-	ecs_entity_add_script(&ecs, button, {
+	ecs_entity_add_script(&ecs, button, (script_c){
 		.on_update = update_button
 	});
 
-	ecs_entity_add_script(&ecs, button2, {
+	ecs_entity_add_script(&ecs, button2, (script_c){
 		.on_update = update_button
 	});
+	
 
-
-
+	
 	SystemAB(&ecs);
 	SystemB(&ecs);
 
@@ -577,6 +573,9 @@ int main()
 	script_system(&ecs, 0.2f);
 	script_system(&ecs, 0.2f);
 	script_system(&ecs, 0.2f);
+	
+
 }
 
 
+// 

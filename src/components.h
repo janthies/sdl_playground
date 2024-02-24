@@ -44,7 +44,14 @@ typedef struct script
 	(flag == COMPONENT_B_FLAG ? sizeof(component_2_t) : \
 	(flag == COMPONENT_C_FLAG ? sizeof(component_3_t) : \
 	(flag == COMPONENT_SCRIPT_FLAG ? sizeof(script_c) : \
-	NULL))))
+	0))))
 
+// wrapping T in () leads to compile time error
+#define COMPONENT_TO_FLAG(T) _Generic(T, \
+	component_1_t : COMPONENT_A_FLAG, \
+	component_2_t : COMPONENT_B_FLAG, \
+	component_3_t : COMPONENT_C_FLAG, \
+	script_c : COMPONENT_SCRIPT_FLAG, \
+	default : -1)
 
 #endif
