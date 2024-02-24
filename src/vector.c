@@ -516,6 +516,7 @@ void update_button(script_data_t* data)
 }
 
 #define GET_COMPONENT(ecs, e, type) (*(type*)(ecs_entity_component_get((ecs), e, COMPONENT_TO_FLAG(type))))
+#define ENTITY_CREATE(ecs, ...) ecs_entity_create_wf(ecs, GET_MASK_FROM_COMPONENT_TYPES(__VA_ARGS__))
 
 void ecs_entity_add_script(ecs_t* ecs, entity e, script_c script)
 {
@@ -542,9 +543,13 @@ int main()
 		GET_COMPONENT(&ecs, e, component_2_t).val = (rand() % 100) / (float)10;
 	}
 
-	entity player = ecs_entity_create_wf(&ecs, COMPONENT_SCRIPT_FLAG);
-	entity button = ecs_entity_create_wf(&ecs, COMPONENT_SCRIPT_FLAG);
-	entity button2 = ecs_entity_create_wf(&ecs, COMPONENT_SCRIPT_FLAG);
+	entity player = ENTITY_CREATE(&ecs, script_c);
+	entity button = ENTITY_CREATE(&ecs, script_c);
+	entity button2 = ENTITY_CREATE(&ecs, script_c);
+	
+
+
+	//entity new = ENTIYT_CREATE(ecs, type1, type2, type3)
 	
 	playerdata_t pd = {.num = 42, .runtime = 0.f};
 
@@ -562,7 +567,7 @@ int main()
 		.on_update = update_button
 	});
 	
-
+	
 	
 	SystemAB(&ecs);
 	SystemB(&ecs);
@@ -573,9 +578,26 @@ int main()
 	script_system(&ecs, 0.2f);
 	script_system(&ecs, 0.2f);
 	script_system(&ecs, 0.2f);
-	
 
+
+
+
+	entity e = ENTITY_CREATE(&ecs, script_c, component_1_t);
+	GET_COMPONENT(&ecs, e, component_1_t).val = 0;
+
+
+	printf("Mask %u\n", ecs_entity_get_mask(&ecs, e));
 }
 
+// TODO
 
-// 
+// Clean up project
+// 		-> .gitignore
+// 		-> makefile overhaul
+
+// Remove masks from API and instead use types
+//		-> replace API for Archetype and ecs entirely with Macros that automatically convert type to mask
+//		->
+
+// Remove boilerplate from Systems code
+// 		-> no idea yet
